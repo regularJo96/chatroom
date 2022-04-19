@@ -1,12 +1,18 @@
-import random
 from Client import Client
-import sys
+import threading
 
-def connect():
+def main():
     client = Client(0)
-    client.handle()
-    if(client.close):
-        del client
-        sys.exit(0)
 
-connect()
+    while(client.close==False):
+        receive = threading.Thread(target=client.receive_msg)
+        inp = threading.Thread(target=client.get_input)
+        receive.daemon = True
+        inp.daemon = True
+        receive.start()
+        inp.start()
+        receive.join()
+
+    client.close_connection()
+    
+main()
