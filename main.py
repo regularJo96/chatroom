@@ -15,21 +15,7 @@ def main():
     if __name__ == "__main__":
         server = Server()
         server.start()
-        # # client = Client(1, "JoJo Onion")
-        # # client_2 = Client(2, "Lo Dog")
-
-        # server_p = threading.Thread(target=server.handle)
-        # # client_p = threading.Thread(target=client.handle)
-        # # client_p2 = threading.Thread(target=client_2.handle)
-
-        # server_p.start()
-        # # client_p.start()
-        # # client_p2.start()
-    
-        # # client_p.join()
-        # # client_p2.join()
-        # server_p.join()
-
+        
 main()
 
 input()

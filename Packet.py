@@ -9,5 +9,4 @@ class Packet:
         self.user_name = user_name
         message = message + " "*(self.header_size-len(message))
         self.message = message
-        print("built packet, msg is:",self.message)
     

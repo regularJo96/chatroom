@@ -1,6 +1,9 @@
 import socket
 from Packet import Packet
 import json
+import ast
+import threading
+import sys
 
 class Client:
     client = None
@@ -9,45 +12,63 @@ class Client:
     uid = None
     user_name = None
     header_size = 1024
-    received_message = False
-    prompt_displayed = False
+    received_message = ""
+    msg = None
+    close = False
 
     def __init__(self, uid):
         self.user_name = input("Welcome! Please enter a name to use while chatting:")
         self.client = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
-        print("Socket created.")
+        #print("Socket created.")
         self.uid = uid
 
     def handle(self):
         self.client.connect((self.host, self.port_number))
         print("Connection established with the server.")
+        ## send username info
+        print("Sending msg with username info to the server:")
+        packet = Packet(self.uid,self.user_name, f"hello server. {self.user_name} here requesting a uid.")
+        json_pkt = json.dumps(packet.__dict__)
+        self.client.send(json_pkt.encode())
+        msg_in = self.client.recv(self.header_size).decode("utf-8")
+        msg_in = msg_in.split("$")
+        self.uid = msg_in[0]
+        print(f"currently connected clients: {msg_in[1]}")
+        
 
-        while True:
-            #thread listening for input from server or thread listening for input from user
-            if self.received_message:
-                ## display received message(s)
-                print("received")
-                self.prompt_displayed = False
-            else:
-                if(not self.prompt_displayed):
-                    msg = self.get_input()
-                    self.prompt_displayed = True
-            # msg = f"Hi I am a TCP client with id: {self.uid} created by {self.user_name}."
-            print("Sending msg to the server:", msg)
-            packet = Packet(self.uid,self.user_name, msg)
-            json_pkt = json.dumps(packet.__dict__) 
-            self.client.send(json_pkt.encode())
-            msg_in = self.client.recv(self.header_size).decode("utf-8")
-            print("Ack from the server:",msg_in)
-            print(msg_in)
+        while self.close==False:
+            def receive_msg(self):
+                msg_in = self.client.recv(self.header_size).decode("utf-8")
+                msg_in = ast.literal_eval(msg_in)
 
+                if(self.uid != msg_in['uid']):
+                    self.received_message = f"{msg_in['uid']}: {msg_in['message']}"
+                    print(self.received_message)
+                    self.received_message = ""
+ 
+                elif(msg_in["message"][:5]==".exit"):
+                    #self.close_connection()
+                    self.close = True
+                    print("closing connection...")
+
+            def get_input(self):
+                self.msg = input()
+                packet = Packet(self.uid,self.user_name, self.msg)
+                json_pkt = json.dumps(packet.__dict__)
+                self.client.send(json_pkt.encode())
             
-          
-    
-    # maybe have a separate thread in charge of getting input from user
-    def get_input(self):
-        return input(">>> ")
+            receive = threading.Thread(target=receive_msg, args=(self,))
+            inp = threading.Thread(target=get_input, args=(self,))
+            receive.start()
+            inp.start()
+            receive.join()
+            inp.join()
+
+        self.close_connection()
+        
 
     def close_connection(self):
         print("Terminating the Connection.")
         self.client.close()
+        quit
+        
