@@ -33,6 +33,7 @@ class Server:
             print("Connection established with client at address {}".format(client_addr))
             self.clients.append(client)
 
+
             thread = threading.Thread(target=handle, args=(self,client,client_addr))
             thread.start()
 
@@ -52,7 +53,8 @@ class Server:
             print(f"assigning {msg['user_name']} with uid {uid}")
             self.connections.append(uid)
             print(f"current connections {self.connections}")
-            self.assign_uid(client,msg,uid)
+            self.assign_uid(client,uid)
+            self.send_conn_alert(client,uid,msg)
 
         elif(msg["message"][:5]==".exit"):
             self.connections.remove(msg["uid"])
@@ -65,10 +67,17 @@ class Server:
             self.send_ack(client,msg)
         return True
         
-    def assign_uid(self,client,msg,uid):
+    def assign_uid(self,client,uid):
         print("sending uid to connection")
         msg_out = f"{uid}${self.connections}".encode()
         client.send(msg_out)
+
+    def send_conn_alert(self,client,uid,msg):
+        msg["message"] = f"{uid} connected"
+        msg_out = f"{msg}".encode()
+        for client in self.clients:
+            print(msg_out)
+            client.send(msg_out)
 
     def send_close_ack(self,client,msg,uid):
         print(f"connection with {uid} terminated.")
@@ -76,10 +85,8 @@ class Server:
         print(f"current connections {self.connections}")
 
     def send_ack(self,client,msg):
-        print("message is", msg)
         msg_out = f"{msg}".encode()
         for client in self.clients:
-            print(msg_out)
             client.send(msg_out)
 
     def gen_id(self):

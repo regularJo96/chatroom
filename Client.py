@@ -35,11 +35,15 @@ class Client:
         msg_in = self.client.recv(self.header_size).decode("utf-8")
         msg_in = ast.literal_eval(msg_in)
 
-        if(self.uid != msg_in['uid']):
+
+        if(msg_in['uid']==0):
+            self.received_message = f"{msg_in['message']}"
+            print(self.received_message)
+            self.received_message = ""
+        elif(self.uid != msg_in['uid']):
             self.received_message = f"{msg_in['uid']}: {msg_in['message']}"
             print(self.received_message)
             self.received_message = ""
-
         elif(msg_in["message"][:5]==".exit"):
             #self.close_connection()
             self.close = True
