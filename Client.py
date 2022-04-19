@@ -2,8 +2,6 @@ import socket
 from Packet import Packet
 import json
 import ast
-import threading
-import sys
 
 class Client:
     client = None
@@ -21,8 +19,6 @@ class Client:
         self.client = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
         #print("Socket created.")
         self.uid = uid
-
-    def handle(self):
         self.client.connect((self.host, self.port_number))
         print("Connection established with the server.")
         ## send username info
@@ -34,41 +30,26 @@ class Client:
         msg_in = msg_in.split("$")
         self.uid = msg_in[0]
         print(f"currently connected clients: {msg_in[1]}")
-        
 
-        while self.close==False:
-            def receive_msg(self):
-                msg_in = self.client.recv(self.header_size).decode("utf-8")
-                msg_in = ast.literal_eval(msg_in)
+    def receive_msg(self):
+        msg_in = self.client.recv(self.header_size).decode("utf-8")
+        msg_in = ast.literal_eval(msg_in)
 
-                if(self.uid != msg_in['uid']):
-                    self.received_message = f"{msg_in['uid']}: {msg_in['message']}"
-                    print(self.received_message)
-                    self.received_message = ""
- 
-                elif(msg_in["message"][:5]==".exit"):
-                    #self.close_connection()
-                    self.close = True
-                    print("closing connection...")
+        if(self.uid != msg_in['uid']):
+            self.received_message = f"{msg_in['uid']}: {msg_in['message']}"
+            print(self.received_message)
+            self.received_message = ""
 
-            def get_input(self):
-                self.msg = input()
-                packet = Packet(self.uid,self.user_name, self.msg)
-                json_pkt = json.dumps(packet.__dict__)
-                self.client.send(json_pkt.encode())
-            
-            receive = threading.Thread(target=receive_msg, args=(self,))
-            inp = threading.Thread(target=get_input, args=(self,))
-            receive.start()
-            inp.start()
-            receive.join()
-            inp.join()
+        elif(msg_in["message"][:5]==".exit"):
+            #self.close_connection()
+            self.close = True
 
-        self.close_connection()
-        
+    def get_input(self):
+        self.msg = input()
+        packet = Packet(self.uid,self.user_name, self.msg)
+        json_pkt = json.dumps(packet.__dict__)
+        self.client.send(json_pkt.encode())
 
     def close_connection(self):
         print("Terminating the Connection.")
         self.client.close()
-        quit
-        
