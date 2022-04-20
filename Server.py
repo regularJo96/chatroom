@@ -42,7 +42,6 @@ class Server:
         # {"uid": "user_name+number", "user_name": "jojo", "message": "hello"} 
 
         msg = client.recv(1024).decode()
-        print("Message received from the client:")
         #convert json string to python dict
         msg = ast.literal_eval(msg)
         if(msg["uid"]==0):
@@ -71,7 +70,7 @@ class Server:
             return False
             
         else:
-            print(msg["user_name"] + ": " + msg["message"])
+            print(f"message received from {msg['uid']}/nsending acknowledgement to client.")
             self.send_ack(client,msg)
         return True
         
@@ -83,7 +82,6 @@ class Server:
     def send_conn_alert(self,client,msg):
         msg_out = f"{msg}".encode()
         for client in self.clients:
-            print(msg_out)
             client.send(msg_out)
 
     def send_close_ack(self,client,msg,uid):
