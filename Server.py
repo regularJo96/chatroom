@@ -54,11 +54,19 @@ class Server:
             self.connections.append(uid)
             print(f"current connections {self.connections}")
             self.assign_uid(client,uid)
-            self.send_conn_alert(client,uid,msg)
+            msg["message"] = f"{uid} connected"
+            self.send_conn_alert(client,msg)
 
         elif(msg["message"][:5]==".exit"):
             self.connections.remove(msg["uid"])
             self.send_close_ack(client,msg,msg["uid"])
+            
+            # change the uid to 0 after grabbing it so that the client registers that it's an
+            # alert sent by the server
+            uid = msg["uid"]
+            msg["uid"] = 0
+            msg["message"] = f"{uid} disconnected"
+            self.send_conn_alert(client,msg)
             self.clients.remove(client)
             return False
             
@@ -72,8 +80,7 @@ class Server:
         msg_out = f"{uid}${self.connections}".encode()
         client.send(msg_out)
 
-    def send_conn_alert(self,client,uid,msg):
-        msg["message"] = f"{uid} connected"
+    def send_conn_alert(self,client,msg):
         msg_out = f"{msg}".encode()
         for client in self.clients:
             print(msg_out)
